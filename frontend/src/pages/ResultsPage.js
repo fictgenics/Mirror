@@ -6,13 +6,9 @@ import {
   Share2, 
   TrendingUp,
   Github,
-  Twitter,
-  MessageCircle,
   Star,
   GitFork,
-  MessageSquare,
-  Heart,
-  Repeat2
+  MessageSquare
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import toast from 'react-hot-toast';
@@ -47,9 +43,7 @@ const ResultsPage = () => {
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: TrendingUp },
-    { id: 'github', name: 'GitHub', icon: Github },
-    { id: 'twitter', name: 'Twitter', icon: Twitter },
-    { id: 'reddit', name: 'Reddit', icon: MessageCircle }
+    { id: 'github', name: 'GitHub', icon: Github }
   ];
 
   const renderOverviewTab = () => (
@@ -79,32 +73,6 @@ const ResultsPage = () => {
             <div className="text-sm text-gray-600">Repositories analyzed</div>
           </div>
         )}
-
-        {analysisData.twitter_data && (
-          <div className="card">
-            <div className="flex items-center space-x-3 mb-4">
-              <Twitter className="w-6 h-6 text-blue-500" />
-              <h4 className="font-semibold text-gray-900">Twitter/X</h4>
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-2">
-              {analysisData.twitter_data.length}
-            </div>
-            <div className="text-sm text-gray-600">Posts analyzed</div>
-          </div>
-        )}
-
-        {analysisData.reddit_data && (
-          <div className="card">
-            <div className="flex items-center space-x-3 mb-4">
-              <MessageCircle className="w-6 h-6 text-orange-500" />
-              <h4 className="font-semibold text-gray-900">Reddit</h4>
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-2">
-              {analysisData.reddit_data.length}
-            </div>
-            <div className="text-sm text-gray-600">Posts analyzed</div>
-          </div>
-        )}
       </div>
 
       {/* Quick Insights */}
@@ -120,7 +88,7 @@ const ResultsPage = () => {
           <div className="flex items-center space-x-3">
             <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
             <span className="text-gray-700">
-              Data collected from {analysisData.platforms.length} platform{analysisData.platforms.length !== 1 ? 's' : ''}
+              Data collected from GitHub platform
             </span>
           </div>
         </div>
@@ -212,150 +180,9 @@ const ResultsPage = () => {
     );
   };
 
-  const renderTwitterTab = () => {
-    if (!analysisData.twitter_data || analysisData.twitter_data.length === 0) {
-      return (
-        <div className="card text-center py-12">
-          <Twitter className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No Twitter data available</p>
-        </div>
-      );
-    }
 
-    const posts = analysisData.twitter_data;
-    const engagementData = posts.map(post => ({
-      post: post.author_username,
-      likes: post.like_count,
-      retweets: post.retweet_count,
-      replies: post.reply_count
-    })).slice(0, 10);
 
-    return (
-      <div className="space-y-6">
-        {/* Engagement Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Post Engagement</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={engagementData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="post" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="likes" fill="#3b82f6" name="Likes" />
-                <Bar dataKey="retweets" fill="#10b981" name="Retweets" />
-                <Bar dataKey="replies" fill="#f59e0b" name="Replies" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Top Posts */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Posts</h3>
-          <div className="space-y-4">
-            {posts.slice(0, 10).map((post, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-900 mb-2">{post.text}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center space-x-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{post.like_count}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <Repeat2 className="w-4 h-4" />
-                        <span>{post.retweet_count}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{post.reply_count}</span>
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        @{post.author_username}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderRedditTab = () => {
-    if (!analysisData.reddit_data || analysisData.reddit_data.length === 0) {
-      return (
-        <div className="card text-center py-12">
-          <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No Reddit data available</p>
-        </div>
-      );
-    }
-
-    const posts = analysisData.reddit_data;
-    const scoreData = posts
-      .map(post => ({ title: post.title.substring(0, 30) + '...', score: post.score }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-
-    return (
-      <div className="space-y-6">
-        {/* Score Distribution */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Post Scores</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={scoreData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="title" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="score" fill="#f59e0b" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Top Posts */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Posts</h3>
-          <div className="space-y-4">
-            {posts.slice(0, 10).map((post, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      <a href={post.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600">
-                        {post.title}
-                      </a>
-                    </h4>
-                    <p className="text-sm text-gray-600 mb-2">{post.selftext.substring(0, 150)}...</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">
-                        r/{post.subreddit}
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>{post.score}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{post.num_comments}</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -363,10 +190,6 @@ const ResultsPage = () => {
         return renderOverviewTab();
       case 'github':
         return renderGitHubTab();
-      case 'twitter':
-        return renderTwitterTab();
-      case 'reddit':
-        return renderRedditTab();
       default:
         return renderOverviewTab();
     }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, BarChart3, Github, Twitter, MessageCircle } from 'lucide-react';
+import { Menu, X, Search, BarChart3, Github } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,8 +52,6 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-gray-400">
               <Github className="w-5 h-5" />
-              <Twitter className="w-5 h-5" />
-              <MessageCircle className="w-5 h-5" />
             </div>
           </div>
 

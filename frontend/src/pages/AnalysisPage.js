@@ -3,8 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   Github, 
-  Twitter, 
-  MessageCircle, 
   TrendingUp,
   BarChart3,
   Loader2,
@@ -18,7 +16,7 @@ const AnalysisPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
-  const [selectedPlatforms, setSelectedPlatforms] = useState(['github', 'twitter', 'reddit']);
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['github']);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
 
@@ -29,20 +27,6 @@ const AnalysisPage = () => {
       description: 'Repository analysis, languages, contributors',
       icon: Github,
       color: 'from-gray-500 to-gray-700'
-    },
-    {
-      id: 'twitter',
-      name: 'Twitter/X',
-      description: 'Trending posts, engagement metrics',
-      icon: Twitter,
-      color: 'from-blue-400 to-blue-600'
-    },
-    {
-      id: 'reddit',
-      name: 'Reddit',
-      description: 'Community discussions, sentiment analysis',
-      icon: MessageCircle,
-      color: 'from-orange-400 to-orange-600'
     }
   ];
 

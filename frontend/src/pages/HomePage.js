@@ -5,8 +5,6 @@ import {
   BarChart3, 
   TrendingUp, 
   Github, 
-  Twitter, 
-  MessageCircle,
   ArrowRight,
   Zap,
   Shield,
@@ -20,18 +18,6 @@ const HomePage = () => {
       title: 'GitHub Analysis',
       description: 'Analyze trending repositories, programming languages, and contributor activity across the GitHub ecosystem.',
       color: 'from-gray-500 to-gray-700'
-    },
-    {
-      icon: Twitter,
-      title: 'Twitter/X Insights',
-      description: 'Track trending topics, engagement metrics, and hashtag popularity on Twitter/X platform.',
-      color: 'from-blue-400 to-blue-600'
-    },
-    {
-      icon: MessageCircle,
-      title: 'Reddit Community',
-      description: 'Discover trending discussions, community sentiment, and keyword analysis across tech subreddits.',
-      color: 'from-orange-400 to-orange-600'
     }
   ];
 
@@ -77,7 +63,7 @@ const HomePage = () => {
               <span className="text-gradient">Trending</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Analyze trending topics across GitHub, Twitter/X, and Reddit with powerful data visualization and insights. 
+              Analyze trending topics across GitHub with powerful data visualization and insights. 
               Stay ahead of the curve in technology and development.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -108,10 +94,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Multi-Platform Analysis
+              GitHub Repository Analysis
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Get comprehensive insights by analyzing data from the most popular developer and tech platforms
+              Get comprehensive insights by analyzing trending repositories, languages, and contributors on GitHub
             </p>
           </div>
           

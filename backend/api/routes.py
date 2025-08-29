@@ -58,18 +58,6 @@ async def get_available_platforms():
                 "name": "GitHub",
                 "description": "Analyze trending repositories, languages, and contributors",
                 "capabilities": ["Repository analysis", "Language trends", "Contributor insights"]
-            },
-            {
-                "id": PlatformType.TWITTER,
-                "name": "Twitter/X",
-                "description": "Analyze trending posts and engagement metrics",
-                "capabilities": ["Post analysis", "Engagement metrics", "Hashtag trends"]
-            },
-            {
-                "id": PlatformType.REDDIT,
-                "name": "Reddit",
-                "description": "Analyze community discussions and trending topics",
-                "capabilities": ["Community analysis", "Discussion trends", "Keyword extraction"]
             }
         ]
     }
@@ -127,7 +115,7 @@ async def quick_analysis(query: str, platforms: List[PlatformType] = None):
     Quick analysis with minimal configuration
     """
     if not platforms:
-        platforms = [PlatformType.GITHUB, PlatformType.TWITTER, PlatformType.REDDIT]
+        platforms = [PlatformType.GITHUB]
     
     request = TrendingAnalysisRequest(
         query=query,
@@ -143,20 +131,18 @@ async def quick_analysis(query: str, platforms: List[PlatformType] = None):
             "success": True,
             "query": query,
             "overall_score": trending_topic.overall_score,
-            "summary": {
-                "total_repos": summary.total_repos,
-                "total_tweets": summary.total_tweets,
-                "total_reddit_posts": summary.total_reddit_posts,
-                "top_languages": summary.top_languages[:5],
-                "platform_stats": [
-                    {
-                        "platform": stat.platform,
-                        "total_items": stat.total_items,
-                        "trending_keywords": stat.trending_keywords[:5]
-                    }
-                    for stat in summary.platform_stats
-                ]
-            }
+                            "summary": {
+                    "total_repos": summary.total_repos,
+                    "top_languages": summary.top_languages[:5],
+                    "platform_stats": [
+                        {
+                            "platform": stat.platform,
+                            "total_items": stat.total_items,
+                            "trending_keywords": stat.trending_keywords[:5]
+                        }
+                        for stat in summary.platform_stats
+                    ]
+                }
         }
         
     except Exception as e:
