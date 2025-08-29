@@ -14,13 +14,17 @@ class GitHubRepo(BaseModel):
     stargazers_count: int
     forks_count: int
     language: Optional[str]
-    topics: List[str] = []
+    topics: List[str]
     created_at: datetime
     updated_at: datetime
     open_issues_count: int
     contributors_count: Optional[int]
     commits_count: Optional[int]
-    tech_stack: List[str] = []
+    tech_stack: List[str]
+    stars_per_day: Optional[float] = None
+    health_score: Optional[float] = None
+    stars_per_contributor: Optional[float] = None
+
 
 
 

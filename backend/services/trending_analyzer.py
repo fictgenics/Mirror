@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List
 from datetime import datetime
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -8,11 +8,13 @@ from models.trending import (
     PlatformType, AnalysisSummary, PlatformStats
 )
 from services.github_service import GitHubService
+from services.nlp_services import SemanticSearch   # 👈 added
 from core.config import settings
 
 class TrendingAnalyzer:
     def __init__(self):
         self.github_service = GitHubService()
+        self.semantic = SemanticSearch()   # 👈 init Gemini wrapper
     
     async def analyze_trending_topic(self, request: TrendingAnalysisRequest) -> TrendingTopic:
         """Analyze trending topics across all specified platforms"""
@@ -25,10 +27,19 @@ class TrendingAnalyzer:
                 analysis_timestamp=datetime.utcnow()
             )
             
+            # 🔹 Expand query with NLP (Gemini)
+            try:
+                expanded_query = await self.semantic.expand_query(request.query)
+            except Exception as e:
+                print(f"Error expanding query with NLP: {e}")
+                expanded_query = request.query  # fallback
+
+            trending_topic.query = expanded_query  # save expanded query
+            
             # Collect GitHub data
             if PlatformType.GITHUB in request.platforms:
                 try:
-                    github_data = await self._collect_github_data(request.query, request.max_results_per_platform)
+                    github_data = await self._collect_github_data(expanded_query, request.max_results_per_platform)
                     trending_topic.github_data = github_data
                 except Exception as e:
                     print(f"Error collecting GitHub data: {e}")
@@ -54,8 +65,6 @@ class TrendingAnalyzer:
                 max_results
             )
     
-
-    
     def _calculate_overall_score(self, trending_topic: TrendingTopic) -> float:
         """Calculate overall trending score based on GitHub data"""
         if trending_topic.github_data:
@@ -71,7 +80,7 @@ class TrendingAnalyzer:
         total_forks = sum(repo.forks_count for repo in repos)
         total_contributors = sum(repo.contributors_count or 0 for repo in repos)
         
-        # Normalize scores (these are rough estimates)
+        # Normalize scores (rough estimates)
         avg_stars = total_stars / len(repos)
         avg_forks = total_forks / len(repos)
         avg_contributors = total_contributors / len(repos)
@@ -81,8 +90,6 @@ class TrendingAnalyzer:
         
         # Normalize to 0-100 scale
         return min(score / 1000, 100.0)
-    
-
     
     def generate_analysis_summary(self, trending_topic: TrendingTopic) -> AnalysisSummary:
         """Generate comprehensive analysis summary"""
