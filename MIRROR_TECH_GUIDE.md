@@ -117,7 +117,7 @@ const renderOverviewTab = () => (
 
 ### **Overall Score Formula:**
 ```
-Overall Score = (GitHub_Score × 0.4) + (Twitter_Score × 0.35) + (Reddit_Score × 0.25)
+Overall Score = GitHub Score = (avg_stars × 0.5) + (avg_forks × 0.3) + (avg_contributors × 0.2)
 ```
 
 ### **GitHub Score (40% weight):**
