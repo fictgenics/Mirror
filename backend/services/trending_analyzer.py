@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -120,3 +120,45 @@ class TrendingAnalyzer:
             summary.platform_stats.append(github_stats)
         
         return summary
+
+    async def analyze_trending_with_nlp(self, natural_query: str, max_results: int = 20) -> Dict[str, Any]:
+        """Analyze trending topics using natural language processing"""
+        try:
+            # Use GitHub service's NLP search
+            nlp_results = self.github_service.search_with_nlp(natural_query, max_results)
+            
+            # Create trending topic
+            trending_topic = TrendingTopic(
+                topic=nlp_results["query_analysis"]["original_query"],
+                query=natural_query,
+                platforms=[PlatformType.GITHUB],
+                github_data=nlp_results["repositories"],
+                analysis_timestamp=datetime.utcnow()
+            )
+            
+            # Calculate overall score
+            trending_topic.overall_score = self._calculate_overall_score(trending_topic)
+            
+            # Generate summary
+            summary = self.generate_analysis_summary(trending_topic)
+            
+            return {
+                "trending_topic": trending_topic,
+                "summary": summary,
+                "query_analysis": nlp_results["query_analysis"],
+                "search_query": nlp_results["search_query"],
+                "parsed_filters": nlp_results["parsed_filters"],
+                "suggestions": self.github_service.get_semantic_search_suggestions(natural_query)
+            }
+            
+        except Exception as e:
+            print(f"Error in NLP trending analysis: {e}")
+            return {
+                "error": str(e),
+                "trending_topic": None,
+                "summary": None,
+                "query_analysis": {},
+                "search_query": natural_query,
+                "parsed_filters": {},
+                "suggestions": []
+            }

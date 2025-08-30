@@ -19,6 +19,9 @@ const AnalysisPage = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState(['github']);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [useNLP, setUseNLP] = useState(false);
+  const [nlpSuggestions, setNlpSuggestions] = useState([]);
+  const [showNLPExamples, setShowNLPExamples] = useState(false);
 
   const platforms = [
     {
@@ -140,6 +143,77 @@ const AnalysisPage = () => {
     }
   };
 
+  const handleNLPSearch = async () => {
+    if (!query.trim()) {
+      toast.error('Please enter a search query');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+
+    try {
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 500);
+
+      const response = await axios.post('/api/v1/trending/nlp-search', {
+        natural_query: query.trim(),
+        max_results: 20
+      });
+
+      clearInterval(progressInterval);
+      setAnalysisProgress(100);
+
+      if (response.data.success) {
+        toast.success('NLP search completed successfully!');
+        // Navigate to results page with NLP data
+        navigate('/results', { 
+          state: { 
+            analysisData: {
+              ...response.data,
+              platforms: ['github'],
+              github_data: response.data.repositories
+            },
+            query: query.trim(),
+            isNLPSearch: true,
+            nlpAnalysis: response.data
+          }
+        });
+      } else {
+        throw new Error(response.data.error || 'NLP search failed');
+      }
+
+    } catch (error) {
+      console.error('NLP search error:', error);
+      toast.error(error.response?.data?.error || 'NLP search failed. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisProgress(0);
+    }
+  };
+
+  const fetchNLPSuggestions = async () => {
+    try {
+      const response = await axios.get('/api/v1/trending/nlp-examples');
+      setNlpSuggestions(response.data.nlp_examples);
+    } catch (error) {
+      console.error('Error fetching NLP examples:', error);
+    }
+  };
+
+  const handleQueryChange = (newQuery) => {
+    setQuery(newQuery);
+    setUseNLP(true); // Automatically enable NLP for suggestions
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -166,11 +240,56 @@ const AnalysisPage = () => {
                 id="query"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., Python machine learning, JavaScript frameworks, Data science tools..."
+                placeholder="e.g., repos with more than 100 stars where mcp server is used to connect notion..."
                 className="input-field pl-10 text-lg"
                 disabled={isAnalyzing}
               />
             </div>
+            
+            {/* NLP Toggle */}
+            <div className="mt-3 flex items-center space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useNLP}
+                  onChange={(e) => setUseNLP(e.target.checked)}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Use Natural Language Processing</span>
+              </label>
+              
+              <button
+                type="button"
+                onClick={() => setShowNLPExamples(!showNLPExamples)}
+                className="text-sm text-primary-600 hover:text-primary-700 underline"
+              >
+                {showNLPExamples ? 'Hide' : 'Show'} NLP Examples
+              </button>
+            </div>
+
+            {/* NLP Examples */}
+            {showNLPExamples && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-3">💡 Natural Language Query Examples:</h4>
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <strong>•</strong> "repos with more than 100 stars where mcp server is used to connect notion"
+                  </div>
+                  <div className="text-sm">
+                    <strong>•</strong> "python projects with at least 50 forks created since 2023"
+                  </div>
+                  <div className="text-sm">
+                    <strong>•</strong> "javascript libraries with typescript support and more than 200 stars"
+                  </div>
+                  <div className="text-sm">
+                    <strong>•</strong> "machine learning tools in python with more than 1000 stars"
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-blue-700">
+                  💡 NLP automatically converts natural language to GitHub search queries with filters!
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Platform Selection */}
@@ -213,23 +332,43 @@ const AnalysisPage = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={startAnalysis}
-              disabled={isAnalyzing || selectedPlatforms.length === 0}
-              className="btn-primary flex-1 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  Start Full Analysis
-                </>
-              )}
-            </button>
+            {useNLP ? (
+              <button
+                onClick={handleNLPSearch}
+                disabled={isAnalyzing || !query.trim()}
+                className="btn-primary flex-1 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    NLP Searching...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Search with NLP
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={startAnalysis}
+                disabled={isAnalyzing || selectedPlatforms.length === 0}
+                className="btn-primary flex-1 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Start Full Analysis
+                  </>
+                )}
+              </button>
+            )}
             
             <button
               onClick={handleQuickAnalysis}
@@ -246,7 +385,7 @@ const AnalysisPage = () => {
                   <TrendingUp className="w-5 h-5 mr-2" />
                   Quick Analysis
                 </>
-              )}
+                )}
             </button>
           </div>
         </div>

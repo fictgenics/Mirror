@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 import time
 from core.config import settings
+from services.nlp_parser import NLPQueryParser, ParsedQuery
 from models.trending import GitHubRepo
 from services.nlp_services import SemanticSearch
 
@@ -15,22 +16,6 @@ class GitHubService:
         self.nlp_services = SemanticSearch()   # ✅ initialize NLP service
         if self.token:
             self.github = github3.login(token=self.token)
-
-    async def search_repos(self, query: str, max_results: int = 10) -> List[GitHubRepo]:
-        """
-        Search repositories using NLP to interpret natural language queries.
-        Example: "show me repos about real-time chat apps with WebSockets"
-        """
-        try:
-            # ✅ Convert NL query into GitHub search keywords
-            interpreted_query = self.nlp_service.interpret_query(query)
-            print(f"[DEBUG] Original query: {query}")
-            print(f"[DEBUG] Interpreted query: {interpreted_query}")
-
-            return await self._search_repos_unauthenticated(interpreted_query, max_results)
-        except Exception as e:
-            print(f"Error in NLP search: {e}")
-            return []
 
     def search_trending_repos(self, query: str, max_results: int = 20) -> List[GitHubRepo]:
         """Search for trending repositories based on query"""
@@ -248,3 +233,78 @@ class GitHubService:
         )
 
         return sorted_contributors[:10]  # Top 10 contributors
+
+    def search_with_nlp(self, natural_query: str, max_results: int = 20) -> Dict[str, Any]:
+        """Search repositories using natural language processing"""
+        try:
+            # Initialize NLP parser
+            nlp_parser = NLPQueryParser()
+            
+            # Parse the natural language query
+            parsed_query = nlp_parser.parse_query(natural_query)
+            
+            # Build GitHub search query
+            github_query = nlp_parser.build_github_query(parsed_query)
+            
+            # Get query explanation
+            explanation = nlp_parser.get_query_explanation(parsed_query)
+            
+            # Perform the search
+            repos = self.search_trending_repos(github_query, max_results)
+            
+            return {
+                "repositories": repos,
+                "query_analysis": explanation,
+                "total_found": len(repos),
+                "search_query": github_query,
+                "parsed_filters": explanation["parsed_filters"]
+            }
+            
+        except Exception as e:
+            print(f"Error in NLP search: {e}")
+            return {
+                "repositories": [],
+                "query_analysis": {"error": str(e)},
+                "total_found": 0,
+                "search_query": natural_query,
+                "parsed_filters": {}
+            }
+
+    def get_semantic_search_suggestions(self, query: str) -> List[str]:
+        """Get semantic search suggestions based on the query"""
+        suggestions = []
+        
+        # Common patterns for different types of searches
+        if "mcp" in query.lower() or "model context protocol" in query.lower():
+            suggestions.extend([
+                "mcp server implementation",
+                "model context protocol tools",
+                "mcp client libraries",
+                "mcp integration examples"
+            ])
+        
+        if "notion" in query.lower():
+            suggestions.extend([
+                "notion api integration",
+                "notion database sync",
+                "notion automation tools",
+                "notion webhook handlers"
+            ])
+        
+        if "100" in query and "stars" in query.lower():
+            suggestions.extend([
+                "highly starred repositories",
+                "popular open source projects",
+                "trending repositories",
+                "well-maintained projects"
+            ])
+        
+        # Add generic suggestions
+        suggestions.extend([
+            f"repositories about {query}",
+            f"tools for {query}",
+            f"libraries related to {query}",
+            f"frameworks for {query}"
+        ])
+        
+        return list(set(suggestions))[:5]  # Return unique suggestions, max 5
